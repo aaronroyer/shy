@@ -1,0 +1,90 @@
+if [ "$1" = 'init' ]; then
+cat <<EOS
+shy() {
+  case "\$1" in
+
+    ### Porcelain
+
+    # Load a plugin from a file
+    load)
+      local plugin=\$2
+      if [ -z "\$2" ]; then
+        shy _err "Usage: shy load PLUGIN_NAME"
+      elif [ ! -f "\$plugin" ]; then
+        shy _err "shy: file does not exist: \$plugin"
+      else
+        shy _detect-env-additions source "\$2"
+        [ -n "\$SHY_PLUGIN_DATA" ] && SHY_PLUGIN_DATA="\$SHY_PLUGIN_DATA|||"
+        SHY_PLUGIN_DATA="\$SHY_PLUGIN_DATA\$SHY_TMP_DATA"
+      fi
+      ;;
+
+    list|plugins)
+      ;;
+
+    show)
+      ;;
+
+
+    ### Plumbing
+
+    _err)
+      [ -n "\$2" ] && { echo "\$2" >&2; }
+      return 1
+      ;;
+
+    _pathify)
+      echo \$2 | tr "\$IFS" ':' | sed 's/:\$//'
+      ;;
+
+    _aliases)
+      local raw_aliases
+      if [ -n "\$ZSH_VERSION" ]; then
+        raw_aliases="\$(alias)"
+      else
+        raw_aliases="\$(alias | cut -d ' ' -f 2-)"
+       fi
+      shy _pathify "\$(echo "\$raw_aliases" | cut -d '=' -f 1 | sort)"
+      ;;
+
+    _functions)
+      local funcs
+      if [ -n "\$ZSH_VERSION" ]; then
+       funcs="\$(print -l \${(ok)functions})"
+      else
+        funcs="\$(typeset -F | cut -d ' ' -f 3)"
+      fi
+      shy _pathify "\$funcs"
+      ;;
+
+    _variables)
+      shy _pathify "\$(env | cut -d '=' -f 1 | sort)"
+      ;;
+
+    # Capture names of aliases, functions, and variables in the current environment
+    _capture-env)
+      echo "\$(shy _aliases);\$(shy _functions);\$(shy _variables)"
+      ;;
+
+    # Run the given command command and detect additions to the environment that occurred
+    _detect-env-additions)
+      local before after additions additions_for_type
+      before=\$(shy _capture-env)
+      shift
+      "\$@"
+      after=\$(shy _capture-env)
+      # TODO clean this up
+      for n in 1 2 3; do
+        additions_for_type=\$(comm -13 <(echo \$before | cut -d ';' -f "\$n" | tr ':' '\n') <(echo \$after | cut -d ';' -f "\$n" | tr ':' '\n'))
+        additions="\${additions}\$(shy _pathify "\$additions_for_type")"
+        [ "\$n" -lt "3" ] && additions="\$additions;"
+      done
+      # Ugh, figure out a way to not use this?
+      SHY_TMP_DATA="\$additions"
+      echo \$additions
+      ;;
+
+  esac
+}
+EOS
+fi
