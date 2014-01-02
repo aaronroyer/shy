@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-REALPATH=$(type -p grealpath realpath | head -1)
-
 if [ -t 1 ] && [ -z "$SHY_NO_COLOR" ]; then
   c_reset=$(tput sgr0)
   c_bold=$(tput bold)
@@ -14,6 +12,10 @@ fi
 die() {
   echo $1 >&2;
   exit 1
+}
+
+debug() {
+  [ -n "$SHY_DEBUG" ] && echo "shy: $1" >&2;
 }
 
 # Get data for a plugin with the given name
@@ -35,8 +37,9 @@ plugin_file() {
 }
 
 realpath() {
-  if [ -n "$REALPATH" ]; then
-    $REALPATH "$1"
+  local native=$(type -p grealpath realpath | head -1)
+  if [ -n "$native" ]; then
+    $native "$1"
   else
     [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
   fi
@@ -105,6 +108,8 @@ shy() {
       else
         plugin_file=\$(shy _realpath \$plugin_file)
         plugin_name="\$(basename \${plugin_file%.*})"
+        shy _debug "Loading plugin: \${plugin_file}..."
+
         shy _detect-env-additions source "\$2"
         # TODO capture absolute file path
         new_plugin_data="\$plugin_name;\$plugin_file;\$SHY_TMP_DATA"
@@ -125,6 +130,12 @@ shy() {
       ;;
 
     ### Plumbing
+
+    _debug)
+      if [ -n "\$SHY_DEBUG" ] && [ -n "\$2" ]; then
+        echo "shy: \$2" >&2
+      fi
+      ;;
 
     _err)
       [ -n "\$2" ] && { echo "\$2" >&2; }
