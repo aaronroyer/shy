@@ -76,3 +76,31 @@ PLUGIN1_VAR2"
   assert_failure
   assert_output "Unknown plugin name: bogus_plugin"
 }
+
+@test "which finds where an alias is defined" {
+  load_plugins plugin1 plugin2 plugin3
+  run shy which plugin3_alias1
+  assert_success
+  assert_output "plugin3_alias1 is an alias in the plugin plugin3"
+}
+
+@test "which finds where an function is defined" {
+  load_plugins plugin1 plugin2 plugin3
+  run shy which plugin2_func1
+  assert_success
+  assert_output "plugin2_func1 is a function in the plugin plugin2"
+}
+
+@test "which finds where a variable is defined" {
+  load_plugins plugin1 plugin2 plugin3
+  run shy which PLUGIN1_VAR1
+  assert_success
+  assert_output "PLUGIN1_VAR1 is a variable in the plugin plugin1"
+}
+
+@test "which returns failure status and error message when nothing is found" {
+  load_plugins plugin1 plugin2 plugin3
+  run shy which bogus_something_or_other
+  assert_failure
+  assert_output "(bogus_something_or_other not found in any plugin)"
+}

@@ -28,13 +28,11 @@ plugin_field() {
   echo $1 | cut -d ';' -f $2
 }
 
-plugin_name() {
-  plugin_field "$1" 1
-}
-
-plugin_file() {
-  plugin_field "$1" 2
-}
+plugin_name() { plugin_field "$1" 1; }
+plugin_file() { plugin_field "$1" 2; }
+plugin_aliases() { plugin_field "$1" 3 | tr ':' '\n'; }
+plugin_functions() { plugin_field "$1" 4 | tr ':' '\n'; }
+plugin_variables() { plugin_field "$1" 5 | tr ':' '\n'; }
 
 realpath() {
   local native=$(type -p grealpath realpath | head -1)
@@ -51,7 +49,7 @@ fancy_list() {
   local items="$1" title="$2"
   [ -z "$items" ] && return
   echo -e "\n${c_bold}${c_blue}== ${c_white}$title${c_blue} ==${c_reset}"
-  echo $items | tr ':' '\n'
+  echo "$items"
 }
 
 ### Top-level functions
@@ -66,9 +64,9 @@ show_plugin() {
   local name source_file aliases funcs vars
   name=$(plugin_name "$plugin_data")
   source_file=$(plugin_file "$plugin_data")
-  aliases=$(plugin_field "$plugin_data" 3)
-  funcs=$(plugin_field "$plugin_data" 4)
-  vars=$(plugin_field "$plugin_data" 5)
+  aliases=$(plugin_aliases "$plugin_data")
+  funcs=$(plugin_functions "$plugin_data")
+  vars=$(plugin_variables "$plugin_data")
 
   echo "${c_bold}Plugin name:${c_reset} $name"
   echo "${c_bold}Source file:${c_reset} $source_file"
@@ -87,6 +85,29 @@ edit_plugin() {
   [ -z "$editor" ] && editor=vim
 
   $editor $(plugin_file "$plugin_data")
+}
+
+which_plugin() {
+  local item_name="$1" plugin found
+  for plugin_name in $(list_plugins); do
+    plugin=$(get_plugin_data $plugin_name)
+    if echo "$(plugin_aliases "$plugin")" | grep -q "^$item_name$"; then
+      echo "$item_name is an alias in the plugin $plugin_name"
+      found=yes
+    fi
+    if echo "$(plugin_functions "$plugin")" | grep -q "^$item_name$"; then
+      echo "$item_name is a function in the plugin $plugin_name"
+      found=yes
+    fi
+    if echo "$(plugin_variables "$plugin")" | grep -q "^$item_name$"; then
+      echo "$item_name is a variable in the plugin $plugin_name"
+      found=yes
+    fi
+  done
+
+  if [ -z "$found" ]; then
+    die "($item_name not found in any plugin)"
+  fi
 }
 
 # Prints functionss that need to directly manipulate the interactive shell's environment (and a
@@ -205,8 +226,7 @@ case "$1" in
   init) print_initialization ;;
 
   list) list_plugins ;;
-  show) show_plugin "$2" ;;
-  edit) edit_plugin "$2" ;;
+  show|edit|which) ${1}_plugin "$2" ;;
 
   _realpath) realpath "$2" ;;
 
