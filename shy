@@ -1,5 +1,95 @@
-if [ "$1" = 'init' ]; then
-cat <<EOS
+#!/usr/bin/env bash
+
+REALPATH=$(type -p grealpath realpath | head -1)
+
+if [ -t 1 ] && [ -z "$SHY_NO_COLOR" ]; then
+  c_reset=$(tput sgr0)
+  c_bold=$(tput bold)
+  c_blue=$(tput setaf 4)
+  c_white=$(tput setaf 7)
+fi
+
+### Utilities
+
+die() {
+  echo $1 >&2;
+  exit 1
+}
+
+# Get data for a plugin with the given name
+get_plugin_data() {
+  local name=$1
+  echo $SHY_PLUGIN_DATA | tr '|' '\n' | grep "^${name};"
+}
+
+plugin_field() {
+  echo $1 | cut -d ';' -f $2
+}
+
+plugin_name() {
+  plugin_field "$1" 1
+}
+
+plugin_file() {
+  plugin_field "$1" 2
+}
+
+realpath() {
+  if [ -n "$REALPATH" ]; then
+    $REALPATH "$1"
+  else
+    [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
+  fi
+}
+
+# Takes a semicolon-delimited list and prints it with a nice title. Prints
+# nothing if the list is empty.
+fancy_list() {
+  local items="$1" title="$2"
+  [ -z "$items" ] && return
+  echo -e "\n${c_bold}${c_blue}== ${c_white}$title${c_blue} ==${c_reset}"
+  echo $items | tr ':' '\n'
+}
+
+### Top-level functions
+
+list_plugins() {
+  echo $SHY_PLUGIN_DATA | tr '|' '\n' | cut -d ';' -f 1
+}
+
+show_plugin() {
+  local plugin_data=$(get_plugin_data $1)
+  [ -z "$plugin_data" ] && die "Unknown plugin name: $1"
+  local name source_file aliases funcs vars
+  name=$(plugin_name "$plugin_data")
+  source_file=$(plugin_file "$plugin_data")
+  aliases=$(plugin_field "$plugin_data" 3)
+  funcs=$(plugin_field "$plugin_data" 4)
+  vars=$(plugin_field "$plugin_data" 5)
+
+  echo "${c_bold}Plugin name:${c_reset} $name"
+  echo "${c_bold}Source file:${c_reset} $source_file"
+  fancy_list "$aliases" 'Aliases'
+  fancy_list "$funcs" 'Functions'
+  fancy_list "$vars" 'Variables'
+  echo ''
+}
+
+edit_plugin() {
+  local plugin_data=$(get_plugin_data $1)
+  [ -z "$plugin_data" ] && die "Unknown plugin: $1"
+
+  local editor=$SHY_EDITOR
+  [ -z "$editor" ] && editor=$EDITOR
+  [ -z "$editor" ] && editor=vim
+
+  $editor $(plugin_file "$plugin_data")
+}
+
+# Prints functionss that need to directly manipulate the interactive shell's environment (and a
+# few helpers). This is expected to be eval-ed when the shell loads.
+print_initialization() {
+  cat <<EOS
 shy() {
   case "\$1" in
 
@@ -7,24 +97,32 @@ shy() {
 
     # Load a plugin from a file
     load)
-      local plugin=\$2
+      local plugin_file=\$2 plugin_name new_plugin_data
       if [ -z "\$2" ]; then
         shy _err "Usage: shy load PLUGIN_NAME"
-      elif [ ! -f "\$plugin" ]; then
-        shy _err "shy: file does not exist: \$plugin"
+      elif [ ! -f "\$plugin_file" ]; then
+        shy _err "shy: file does not exist: \$plugin_file"
       else
+        plugin_file=\$(shy _realpath \$plugin_file)
+        plugin_name="\$(basename \${plugin_file%.*})"
         shy _detect-env-additions source "\$2"
-        [ -n "\$SHY_PLUGIN_DATA" ] && SHY_PLUGIN_DATA="\$SHY_PLUGIN_DATA|||"
-        SHY_PLUGIN_DATA="\$SHY_PLUGIN_DATA\$SHY_TMP_DATA"
+        # TODO capture absolute file path
+        new_plugin_data="\$plugin_name;\$plugin_file;\$SHY_TMP_DATA"
+        unset SHY_TMP_DATA
+
+        [ -n "\$SHY_PLUGIN_DATA" ] && SHY_PLUGIN_DATA="\$SHY_PLUGIN_DATA|"
+        export SHY_PLUGIN_DATA="\$SHY_PLUGIN_DATA\$new_plugin_data"
       fi
       ;;
 
     list|plugins)
+      command shy list
       ;;
 
     show)
+      shift
+      command shy show "\$@"
       ;;
-
 
     ### Plumbing
 
@@ -81,10 +179,24 @@ shy() {
       done
       # Ugh, figure out a way to not use this?
       SHY_TMP_DATA="\$additions"
-      echo \$additions
+      ;;
+
+    *)
+      command shy "\$@"
       ;;
 
   esac
 }
 EOS
-fi
+}
+
+case "$1" in
+  init) print_initialization ;;
+
+  list) list_plugins ;;
+  show) show_plugin "$2" ;;
+  edit) edit_plugin "$2" ;;
+
+  _realpath) realpath "$2" ;;
+
+esac

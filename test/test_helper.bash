@@ -61,3 +61,7 @@ load_plugins() {
     shy load "$FIXTURES_DIR/$arg.sh"
   done
 }
+
+load_plugin() {
+  load_plugins "$@"
+}
