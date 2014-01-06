@@ -10,7 +10,7 @@ fi
 ### Utilities
 
 die() {
-  echo $1 >&2;
+  echo "$@" 1>&2;
   exit 1
 }
 
@@ -43,6 +43,11 @@ realpath() {
   fi
 }
 
+# Returns 0 if an exact match is included in a list, non-zero otherwise.
+includes() {
+  echo "$1" | grep -q "^$2$"
+}
+
 # Takes a semicolon-delimited list and prints it with a nice title. Prints
 # nothing if the list is empty.
 fancy_list() {
@@ -51,6 +56,36 @@ fancy_list() {
   echo -e "\n${c_bold}${c_blue}== ${c_white}$title${c_blue} ==${c_reset}"
   echo "$items"
 }
+
+singularize_type() {
+  case "$1" in
+    aliases) echo alias ;;
+    functions) echo function ;;
+    variables) echo variable ;;
+  esac
+}
+
+# Takes the name of an item (function, alias, or variable) and echos the names
+# of any plugins it is included in, if any, followed by the type of item. The
+# plugin name and type of item are separated by a colon.
+#
+# Example
+#   find_item my_func
+#   => my_plugin:function
+find_item() {
+  local item_name="$1"
+  for plugin_name in $(list_plugins); do
+    local plugin=$(get_plugin_data $plugin_name)
+    for item_type in aliases functions variables; do
+      if includes "$(plugin_${item_type} "$plugin")" $item_name; then
+        echo "$plugin_name:$(singularize_type $item_type)"
+        return
+      fi
+    done
+  done
+  return 1
+}
+
 
 ### Top-level functions
 
@@ -76,9 +111,19 @@ show_plugin() {
   echo ''
 }
 
+# Opens the source file of the plugin with the given name in an editor. If the
+# names is not a plugin name then functions, aliases, and variables and the
+# plugin source file containing the item is opened in an editor.
 edit_plugin() {
-  local plugin_data=$(get_plugin_data $1)
-  [ -z "$plugin_data" ] && die "Unknown plugin: $1"
+  local item_name="$1"
+  local plugin_data=$(get_plugin_data $item_name)
+  if [ -z "$plugin_data" ]; then
+    local plugin_name_and_item_type=$(find_item $item_name)
+    if [ -n "$plugin_name_and_item_type" ]; then
+      plugin_data=$(get_plugin_data ${plugin_name_and_item_type%:*})
+    fi
+  fi
+  [ -z "$plugin_data" ] && die "Unknown plugin, function, alias, or variable: $1"
 
   local editor=$SHY_EDITOR
   [ -z "$editor" ] && editor=$EDITOR
@@ -88,24 +133,15 @@ edit_plugin() {
 }
 
 which_plugin() {
-  local item_name="$1" plugin found
-  for plugin_name in $(list_plugins); do
-    plugin=$(get_plugin_data $plugin_name)
-    if echo "$(plugin_aliases "$plugin")" | grep -q "^$item_name$"; then
-      echo "$item_name is an alias in the plugin $plugin_name"
-      found=yes
-    fi
-    if echo "$(plugin_functions "$plugin")" | grep -q "^$item_name$"; then
-      echo "$item_name is a function in the plugin $plugin_name"
-      found=yes
-    fi
-    if echo "$(plugin_variables "$plugin")" | grep -q "^$item_name$"; then
-      echo "$item_name is a variable in the plugin $plugin_name"
-      found=yes
-    fi
-  done
-
-  if [ -z "$found" ]; then
+  local item_name="$1"
+  local plugin_name_and_item_type=$(find_item $item_name)
+  if [ -n "$plugin_name_and_item_type" ]; then
+    local plugin_name=${plugin_name_and_item_type%:*}
+    local item_type=${plugin_name_and_item_type##*:}
+    local article=a
+    [ "$item_type" = "alias" ] && article=an
+    echo "$item_name is $article $item_type in the plugin $plugin_name"
+  else
     die "($item_name not found in any plugin)"
   fi
 }

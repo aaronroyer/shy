@@ -77,6 +77,47 @@ PLUGIN1_VAR2"
   assert_output "Unknown plugin name: bogus_plugin"
 }
 
+@test "edit opens editor for plugin" {
+  load_plugins plugin1 plugin2 plugin3
+  # echo the file path to make sure we get the right one in the output
+  export SHY_EDITOR=echo
+  run shy edit plugin1
+  assert_success
+  assert_output "$FIXTURES_DIR/plugin1.sh"
+}
+
+@test "edit opens editor with plugin containing a function" {
+  load_plugins plugin1 plugin2 plugin3
+  export SHY_EDITOR=echo
+  run shy edit plugin1_func1
+  assert_success
+  assert_output "$FIXTURES_DIR/plugin1.sh"
+}
+
+@test "edit opens editor with plugin containing an alias" {
+  load_plugins plugin1 plugin2 plugin3
+  export SHY_EDITOR=echo
+  run shy edit plugin2_alias1
+  assert_success
+  assert_output "$FIXTURES_DIR/plugin2.sh"
+}
+
+@test "edit opens editor with plugin containing a variable" {
+  load_plugins plugin1 plugin2 plugin3
+  export SHY_EDITOR=echo
+  run shy edit PLUGIN3_VAR1
+  assert_success
+  assert_output "$FIXTURES_DIR/plugin3.sh"
+}
+
+@test "edit returns failure status for nonexistent plugin or item" {
+  load_plugins plugin1 plugin2 plugin3
+  export SHY_EDITOR=echo
+  run shy edit bogus_plugin
+  assert_failure
+  assert_output "Unknown plugin, function, alias, or variable: bogus_plugin"
+}
+
 @test "which finds where an alias is defined" {
   load_plugins plugin1 plugin2 plugin3
   run shy which plugin3_alias1
