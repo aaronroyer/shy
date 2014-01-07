@@ -9,13 +9,18 @@ fi
 
 ### Utilities
 
-die() {
+warn() {
   echo "$@" 1>&2;
+}
+
+die() {
+  warn "$@"
   exit 1
 }
 
 debug() {
-  [ -n "$SHY_DEBUG" ] && echo "shy: $1" >&2;
+  [ -n "$SHY_DEBUG" ] && warn "$@"
+  return 0
 }
 
 # Get data for a plugin with the given name
@@ -142,7 +147,8 @@ which_plugin() {
     [ "$item_type" = "alias" ] && article=an
     echo "$item_name is $article $item_type in the plugin $plugin_name"
   else
-    die "($item_name not found in any plugin)"
+    echo "($item_name not found in any plugin)" >&2;
+    return 1
   fi
 }
 
@@ -195,7 +201,8 @@ shy() {
       ;;
 
     _err)
-      [ -n "\$2" ] && { echo "\$2" >&2; }
+      shift
+      [ -n "\$@" ] && { echo "\$@" >&2; }
       return 1
       ;;
 
