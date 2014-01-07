@@ -7,6 +7,8 @@ if [ -z "$TEST_PATH_INITIALIZED" ]; then
   PATH="$(dirname $BATS_TEST_DIRNAME):$PATH"
 
   export FIXTURES_DIR="$BATS_TEST_DIRNAME/fixtures"
+  export SHY_CACHE_DIR="$BATS_TMPDIR/.shy_plugin_cache"
+  export SHY_NO_CACHE=1
 fi
 
 eval "$(shy init)"
@@ -14,6 +16,10 @@ eval "$(shy init)"
 setup() {
   unset SHY_PLUGIN_DATA
   unset SHY_TMP_DATA
+
+  if [ -d "$SHY_CACHE_DIR" ]; then
+    rm -rf "$SHY_CACHE_DIR"
+  fi
 }
 
 flunk() {

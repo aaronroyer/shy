@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 
 if [ -t 1 ] && [ -z "$SHY_NO_COLOR" ]; then
   c_reset=$(tput sgr0)
@@ -10,7 +11,7 @@ fi
 ### Utilities
 
 warn() {
-  echo "$@" 1>&2;
+  echo "shy: $@" 1>&2;
 }
 
 die() {
@@ -91,6 +92,34 @@ find_item() {
   return 1
 }
 
+plugin_cache_dir() {
+  if [ -n "$SHY_CACHE_DIR" ]; then
+    if [ -d "$SHY_CACHE_DIR" ]; then
+      echo "$SHY_CACHE_DIR";
+      return;
+    else
+      warn "SHY_CACHE_DIR is not a directory: $SHY_CACHE_DIR";
+    fi
+  fi
+
+  echo "$HOME/.shy_plugin_cache"
+}
+
+initialize_cache() {
+  if [ ! -d "$SHY_CACHE_DIR" ]; then
+    mkdir "$SHY_CACHE_DIR" || { warn "Could not create cache directory: $SHY_CACHE_DIR"; return 1; }
+  fi
+}
+
+plugin_name_for_path() {
+  basename "${1%.*}"
+}
+
+cache_file_path() {
+  local plugin_name="$(plugin_name_for_path "$1")"
+  echo "$(plugin_cache_dir)/$plugin_name"
+}
+
 
 ### Top-level functions
 
@@ -147,9 +176,26 @@ which_plugin() {
     [ "$item_type" = "alias" ] && article=an
     echo "$item_name is $article $item_type in the plugin $plugin_name"
   else
-    echo "($item_name not found in any plugin)" >&2;
+    echo "($item_name not found in any plugin)" >&2
     return 1
   fi
+}
+
+write_cache() {
+  local plugin_path="$1" plugin_content="$2"
+  initialize_cache || return 1
+  local plugin_cache_file=$(cache_file_path "$plugin_path")
+  echo $plugin_content > $plugin_cache_file
+}
+
+read_cache() {
+  local plugin_path="$1"
+  [ -d "$SHY_CACHE_DIR" ] || return 1
+  local plugin_cache_file=$(cache_file_path "$plugin_path")
+  [ -f "$plugin_cache_file" ] || return 1
+  [ "$plugin_path" -nt "$plugin_cache_file" ] && return 1
+  debug "Reading plugin data from cache: $plugin_cache_file"
+  cat "$plugin_cache_file"
 }
 
 # Prints functionss that need to directly manipulate the interactive shell's environment (and a
@@ -174,7 +220,6 @@ shy() {
         shy _debug "Loading plugin: \${plugin_file}..."
 
         shy _detect-env-additions source "\$2"
-        # TODO capture absolute file path
         new_plugin_data="\$plugin_name;\$plugin_file;\$SHY_TMP_DATA"
         unset SHY_TMP_DATA
 
@@ -188,8 +233,7 @@ shy() {
       ;;
 
     show)
-      shift
-      command shy show "\$@"
+      command shy "\$@"
       ;;
 
     ### Plumbing
@@ -271,6 +315,9 @@ case "$1" in
   list) list_plugins ;;
   show|edit|which) ${1}_plugin "$2" ;;
 
-  _realpath) realpath "$2" ;;
+  _realpath|_read_cache|_write_cache)
+    cmd=${1:1}
+    shift
+    $cmd "$@" ;;
 
 esac

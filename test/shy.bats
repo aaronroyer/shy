@@ -8,6 +8,46 @@ load test_helper
   assert_equal "plugin2_alias1;plugin2_func1;" "$SHY_TMP_DATA"
 }
 
+@test "_write_cache writes plugin cache for plugin file path" {
+  local plugin_path='/Users/aaron/.shell.d/plugin2.sh'
+  local plugin_content='plugin2_alias1;plugin2_func1;'
+  local cached_plugin_path="$SHY_CACHE_DIR/plugin2"
+  [ ! -d "$SHY_CACHE_DIR" ]
+
+  run shy _write_cache $plugin_path "$plugin_content"
+  assert_success
+
+  assert_equal $plugin_content "$(cat $cached_plugin_path)"
+}
+
+@test "_read_cache reads plugin cache for plugin file path, if fresh" {
+  local plugin_path="$BATS_TMPDIR/plugin2.sh"
+  cat "$FIXTURES_DIR/plugin1.sh" > $plugin_path
+  touch -A '-010000' $plugin_path
+  local plugin_content='plugin2_alias1;plugin2_func1;'
+  [ ! -d "$SHY_CACHE_DIR" ] && mkdir "$SHY_CACHE_DIR"
+  local cached_plugin_path="$SHY_CACHE_DIR/plugin2"
+  echo $plugin_content > "$cached_plugin_path"
+
+  run shy _read_cache $plugin_path
+  assert_success
+  assert_output $plugin_content
+}
+
+@test "_read_cache does not read plugin cache for plugin file path, if stale" {
+  local plugin_path="$BATS_TMPDIR/plugin2.sh"
+  cat "$FIXTURES_DIR/plugin1.sh" > $plugin_path
+  touch -A '010000' $plugin_path
+  local plugin_content='plugin2_alias1;plugin2_func1;'
+  [ ! -d "$SHY_CACHE_DIR" ] && mkdir "$SHY_CACHE_DIR"
+  local cached_plugin_path="$SHY_CACHE_DIR/plugin2"
+  echo $plugin_content > "$cached_plugin_path"
+
+  run shy _read_cache $plugin_path
+  assert_failure
+  assert_output ""
+}
+
 @test "load saves plugin information for first plugin" {
   local plugin_file="$FIXTURES_DIR/plugin1.sh"
   shy load $plugin_file
@@ -74,7 +114,7 @@ PLUGIN1_VAR2"
   load_plugins plugin1 plugin2 plugin3
   run shy show bogus_plugin
   assert_failure
-  assert_output "Unknown plugin name: bogus_plugin"
+  assert_output "shy: Unknown plugin name: bogus_plugin"
 }
 
 @test "edit opens editor for plugin" {
@@ -115,7 +155,7 @@ PLUGIN1_VAR2"
   export SHY_EDITOR=echo
   run shy edit bogus_plugin
   assert_failure
-  assert_output "Unknown plugin, function, alias, or variable: bogus_plugin"
+  assert_output "shy: Unknown plugin, function, alias, or variable: bogus_plugin"
 }
 
 @test "which finds where an alias is defined" {
