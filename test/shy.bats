@@ -12,7 +12,7 @@ load test_helper
   local plugin_path='/Users/aaron/.shell.d/plugin2.sh'
   local plugin_content='plugin2_alias1;plugin2_func1;'
   local cached_plugin_path="$SHY_CACHE_DIR/plugin2"
-  [ ! -d "$SHY_CACHE_DIR" ]
+  [ -d "$SHY_CACHE_DIR" ] && rmdir "$SHY_CACHE_DIR"
 
   run shy _write_cache $plugin_path "$plugin_content"
   assert_success
@@ -25,7 +25,6 @@ load test_helper
   cat "$FIXTURES_DIR/plugin1.sh" > $plugin_path
   touch -A '-010000' $plugin_path
   local plugin_content='plugin2_alias1;plugin2_func1;'
-  [ ! -d "$SHY_CACHE_DIR" ] && mkdir "$SHY_CACHE_DIR"
   local cached_plugin_path="$SHY_CACHE_DIR/plugin2"
   echo $plugin_content > "$cached_plugin_path"
 
@@ -39,7 +38,6 @@ load test_helper
   cat "$FIXTURES_DIR/plugin1.sh" > $plugin_path
   touch -A '010000' $plugin_path
   local plugin_content='plugin2_alias1;plugin2_func1;'
-  [ ! -d "$SHY_CACHE_DIR" ] && mkdir "$SHY_CACHE_DIR"
   local cached_plugin_path="$SHY_CACHE_DIR/plugin2"
   echo $plugin_content > "$cached_plugin_path"
 
@@ -78,6 +76,38 @@ load test_helper
   local bogus_file="$FIXTURES_DIR/file_that_does_not_exist.sh"
   run shy load "$bogus_file"
   assert_failure "shy: file does not exist: $bogus_file"
+}
+
+@test "load reads data from cache if it exists and is fresh" {
+  local plugin_file="$FIXTURES_DIR/plugin1.sh"
+  touch -A '-010000' $plugin_file
+  local cached_plugin_content='cached_alias1;cached_func1;'
+  local cached_plugin_path="$SHY_CACHE_DIR/plugin1"
+  echo $cached_plugin_content > "$cached_plugin_path"
+
+  shy load $plugin_file
+  assert_equal "plugin1;$plugin_file;$cached_plugin_content" "$SHY_PLUGIN_DATA"
+}
+
+@test "load does not read data from cache if it exists and is stale" {
+  local plugin_file="$FIXTURES_DIR/plugin1.sh"
+  touch -A '010000' $plugin_file
+  local cached_plugin_content='cached_alias1;cached_func1;'
+  local cached_plugin_path="$SHY_CACHE_DIR/plugin1"
+  echo $cached_plugin_content > "$cached_plugin_path"
+
+  shy load $plugin_file
+  assert_equal "plugin1;$plugin_file;plugin1_alias1:plugin1_alias2;plugin1_func1:plugin1_func2;PLUGIN1_VAR1:PLUGIN1_VAR2" "$SHY_PLUGIN_DATA"
+}
+
+@test "load writes to cache if not reading from cache" {
+  local plugin_file="$FIXTURES_DIR/plugin1.sh"
+  local cached_plugin_path="$SHY_CACHE_DIR/plugin1"
+  rmdir "$SHY_CACHE_DIR"
+  shy load $plugin_file
+  [ -d "$SHY_CACHE_DIR" ]
+  [ -f "$cached_plugin_path" ]
+  assert_equal "plugin1_alias1:plugin1_alias2;plugin1_func1:plugin1_func2;PLUGIN1_VAR1:PLUGIN1_VAR2" "$(cat $cached_plugin_path)"
 }
 
 @test "list lists all loaded plugin names" {

@@ -217,11 +217,16 @@ shy() {
       else
         plugin_file=\$(shy _realpath \$plugin_file)
         plugin_name="\$(basename \${plugin_file%.*})"
-        shy _debug "Loading plugin: \${plugin_file}..."
 
-        shy _detect-env-additions source "\$2"
-        new_plugin_data="\$plugin_name;\$plugin_file;\$SHY_TMP_DATA"
-        unset SHY_TMP_DATA
+        shy _debug "Loading plugin: \${plugin_file}..."
+        if new_plugin_data=\$(shy _read_cache "\$plugin_file"); then
+          new_plugin_data="\$plugin_name;\$plugin_file;\$new_plugin_data"
+        else
+          shy _detect-env-additions source "\$2"
+          new_plugin_data="\$plugin_name;\$plugin_file;\$SHY_TMP_DATA"
+          shy _write_cache "\$plugin_file" "\$SHY_TMP_DATA"
+          unset SHY_TMP_DATA
+        fi
 
         [ -n "\$SHY_PLUGIN_DATA" ] && SHY_PLUGIN_DATA="\$SHY_PLUGIN_DATA|"
         export SHY_PLUGIN_DATA="\$SHY_PLUGIN_DATA\$new_plugin_data"

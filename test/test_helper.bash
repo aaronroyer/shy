@@ -8,7 +8,6 @@ if [ -z "$TEST_PATH_INITIALIZED" ]; then
 
   export FIXTURES_DIR="$BATS_TEST_DIRNAME/fixtures"
   export SHY_CACHE_DIR="$BATS_TMPDIR/.shy_plugin_cache"
-  export SHY_NO_CACHE=1
 fi
 
 eval "$(shy init)"
@@ -18,7 +17,9 @@ setup() {
   unset SHY_TMP_DATA
 
   if [ -d "$SHY_CACHE_DIR" ]; then
-    rm -rf "$SHY_CACHE_DIR"
+    find "$SHY_CACHE_DIR" -type f -exec rm {} \;
+  else
+    mkdir "$SHY_CACHE_DIR"
   fi
 }
 
