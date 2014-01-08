@@ -94,20 +94,17 @@ find_item() {
 
 plugin_cache_dir() {
   if [ -n "$SHY_CACHE_DIR" ]; then
-    if [ -d "$SHY_CACHE_DIR" ]; then
-      echo "$SHY_CACHE_DIR";
-      return;
-    else
-      warn "SHY_CACHE_DIR is not a directory: $SHY_CACHE_DIR";
-    fi
+    echo "$SHY_CACHE_DIR"
+    return
   fi
 
   echo "$HOME/.shy_plugin_cache"
 }
 
 initialize_cache() {
-  if [ ! -d "$SHY_CACHE_DIR" ]; then
-    mkdir "$SHY_CACHE_DIR" || { warn "Could not create cache directory: $SHY_CACHE_DIR"; return 1; }
+  local cache_dir=$(plugin_cache_dir)
+  if [ ! -d "$cache_dir" ]; then
+    mkdir "$cache_dir" || { warn "Could not create cache directory: $cache_dir"; return 1; }
   fi
 }
 
@@ -185,16 +182,15 @@ write_cache() {
   local plugin_path="$1" plugin_content="$2"
   initialize_cache || return 1
   local plugin_cache_file=$(cache_file_path "$plugin_path")
-  echo $plugin_content > $plugin_cache_file
+  echo "$plugin_content" > "$plugin_cache_file"
 }
 
 read_cache() {
   local plugin_path="$1"
-  [ -d "$SHY_CACHE_DIR" ] || return 1
+  [ -d "$(plugin_cache_dir)" ] || return 1
   local plugin_cache_file=$(cache_file_path "$plugin_path")
   [ -f "$plugin_cache_file" ] || return 1
   [ "$plugin_path" -nt "$plugin_cache_file" ] && return 1
-  debug "Reading plugin data from cache: $plugin_cache_file"
   cat "$plugin_cache_file"
 }
 
@@ -209,8 +205,8 @@ shy() {
 
     # Load a plugin from a file
     load)
-      local plugin_file=\$2 plugin_name new_plugin_data
-      if [ -z "\$2" ]; then
+      local plugin_file="\$2" plugin_name new_plugin_data
+      if [ -z "\$plugin_file" ]; then
         shy _err "Usage: shy load PLUGIN_NAME"
       elif [ ! -f "\$plugin_file" ]; then
         shy _err "shy: file does not exist: \$plugin_file"
@@ -218,11 +214,13 @@ shy() {
         plugin_file=\$(shy _realpath \$plugin_file)
         plugin_name="\$(basename \${plugin_file%.*})"
 
-        shy _debug "Loading plugin: \${plugin_file}..."
         if new_plugin_data=\$(shy _read_cache "\$plugin_file"); then
+          shy _debug "Plugin data retrieved from cache: \${plugin_file}"
+          source "\$plugin_file"
           new_plugin_data="\$plugin_name;\$plugin_file;\$new_plugin_data"
         else
-          shy _detect-env-additions source "\$2"
+          shy _debug "Loading plugin (not from cache): \${plugin_file}..."
+          shy _detect-env-additions source "\$plugin_file"
           new_plugin_data="\$plugin_name;\$plugin_file;\$SHY_TMP_DATA"
           shy _write_cache "\$plugin_file" "\$SHY_TMP_DATA"
           unset SHY_TMP_DATA

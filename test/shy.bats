@@ -16,6 +16,7 @@ load test_helper
 
   run shy _write_cache $plugin_path "$plugin_content"
   assert_success
+  [ -d "$SHY_CACHE_DIR" ]
 
   assert_equal $plugin_content "$(cat $cached_plugin_path)"
 }
