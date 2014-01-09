@@ -72,3 +72,9 @@ load_plugins() {
 load_plugin() {
   load_plugins "$@"
 }
+
+make_modified_in_past() {
+  local current_timestamp=$(date +%Y%m%d%H%M)
+  local past_timestamp=$(expr $current_timestamp - 10)
+  touch -t $past_timestamp "$1"
+}
