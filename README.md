@@ -9,6 +9,13 @@ Using Shy allows you to do the following:
  * Figure out where you configured something with an environment variable and tweak it
  * And (not much) more!
 
+[Installation](#installation)  
+[Usage](#usage)  
+[Why Use This?](#why)  
+[Command Reference](#command-reference)  
+[Advanced Configuration](#advanced-configuration)  
+
+<a name="installation"/>
 ## Installation
 
 1. Download the shy file and place it somewhere on your PATH
@@ -20,6 +27,7 @@ eval "$(shy init)"
 
 If you don't know what a PATH is then Shy is probably not for you. But you can look at [dotfiles that others have set up](http://dotfiles.github.io/) and get some inspiration for learning more about using your shell.
 
+<a name="usage"/>
 ## Usage
 
 Once you're installed then you can used ```shy load``` to load plugin files. You will usually do this in your .bashrc/.zshrc or other files that are run when your shell loads.
@@ -64,6 +72,7 @@ You can open a plugin (or anything else) in your EDITOR.
  # (opens the git plugin source file, where the alias gs is defined)
 ```
 
+<a name="why"/>
 ## Why Use This?
 
 You should try Shy if you like to maintain your own shell config, want things into separate files, want to be able to keep track of it all, and don't want something heavy to do it.
@@ -72,6 +81,7 @@ If you want lots of crazy/awesome power-user features you might like something l
 
 I prefer to keep a set of often-used tools that I've put together myself (with little bits I've stolen) and manage them with simple tools.
 
+<a name="command-reference"/>
 ## Command Reference
 
 #### shy load PLUGIN_PATH
@@ -112,7 +122,7 @@ To find an editor to use, Shy first checks the variable ```SHY_EDITOR```, then `
 
 Print what plugin an alias, function, or variable is defined in.
 
-
+<a name="advanced-configuration"/>
 ## Advanced Configuration
 
 If you want everything to work even if Shy is not installed (like if you sync your dotfiles but don't sync Shy along with it) then you can add a fallback that just loads.
