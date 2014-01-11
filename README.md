@@ -14,6 +14,7 @@ Using Shy allows you to do the following:
 [Why Use This?](#why)  
 [Command Reference](#command-reference)  
 [Advanced Configuration](#advanced-configuration)  
+[Credits](#credits)  
 
 <a name="installation"/>
 ## Installation
@@ -144,6 +145,11 @@ fi
 ```SHY_CACHE_DIR``` - Shy caches plugins in ```~/.shy_plugin_cache```for faster startup; this overrides the default location
 
 ```SHY_NO_COLOR``` - Set this to anything not empty to prevent Shy from coloring any output
+
+<a name="credits"/>
+## Credits
+
+Shy uses [Bats](https://github.com/sstephenson/bats) for automated testing. You should check it out if you're doing anything non-trivial with Bash.
 
 ## License
 

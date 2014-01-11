@@ -1,3 +1,5 @@
+# Much of this is inspired by or straight stolen from rbenv's tests
+# https://github.com/sstephenson/rbenv/blob/master/test/test_helper.bash
 
 # Guard against bats executing this twice
 if [ -z "$TEST_PATH_INITIALIZED" ]; then
