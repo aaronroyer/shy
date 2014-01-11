@@ -68,13 +68,50 @@ You can open a plugin (or anything else) in your EDITOR.
 
 You should try Shy if you like to maintain your own shell config, want things into separate files, want to be able to keep track of it all, and don't want something heavy to do it.
 
-If you want lots of crazy/awesome power-user features you might like something like [composure](https://github.com/erichs/composure) instead. If you use zsh and just want to dump a ton of functionality that someone else wrote into your shell then use [oh-my-zsh](https://github.com/robbyrussell/oh-my-zsh).
+If you want lots of crazy/awesome power-user features you might like something like [composure](https://github.com/erichs/composure) instead. If you use zsh and just want to dump a ton of functionality that someone else wrote into your shell and be done with it then use [oh-my-zsh](https://github.com/robbyrussell/oh-my-zsh).
 
 I prefer to keep a set of often-used tools that I've put together myself (with little bits I've stolen) and manage them with simple tools.
 
 ## Command Reference
 
-TODO: WRITE ME
+#### shy load PLUGIN_PATH
+
+Load a plugin file. This simply sources the file and Shy records the aliases, functions, and variables first defined in the file.
+
+This should normally be used in your shell configuration files (like .bashrc or .zshrc) and not interactively.
+
+---
+
+#### shy list
+
+List the plugins that that have previously been loaded with ```load```. Names of plugins are the plugin file names with any extension removed.
+
+For example:
+
+```~/.shell_plugins/git.sh``` is a plugin named ```git```
+
+```~/.shell_plugins/rails``` is a plugin named ```rails```
+
+---
+
+#### shy show PLUGIN_NAME
+
+Show the details for the plugin. This prints the path of the plugin file, and lists the aliases, functions, and variables defined in the plugin.
+
+---
+
+#### shy edit PLUGIN_OR_OTHER_ITEM_NAME
+
+Open a plugin file in your editor. When given a plugin name, the plugin file is opened. When given the name of an alias, function, or variable the plugin file where that item is defined is opened in the editor.
+
+To find an editor to use, Shy first checks the variable ```SHY_EDITOR```, then ```EDITOR```, then falls back on ``vim```.
+
+---
+
+#### shy which ITEM_NAME
+
+Print what plugin an alias, function, or variable is defined in.
+
 
 ## Advanced Configuration
 
@@ -87,3 +124,17 @@ else
   shy() { [ "$1" = 'load' ] && source "$2"; }
 fi
 ```
+
+### Environment Variables
+
+```SHY_EDITOR``` - sets the editor to use with Shy
+
+```SHY_DEBUG``` - prints debug info to standard out when loading plugins
+
+```SHY_CACHE_DIR``` - Shy caches plugins in ```~/.shy_plugin_cache```for faster startup; this overrides the default location
+
+```SHY_NO_COLOR``` - Set this to anything not empty to prevent Shy from coloring any output
+
+## License
+
+Shy is MIT licensed
