@@ -1,4 +1,17 @@
 #!/usr/bin/env bash
+#
+# Minimal shell plugin management
+#
+# Make this file executable and add it to your PATH somewhere. Then place the
+# following in your shell rc file.
+#
+#   eval "$(shy init)"
+#
+# Then use the following to load plugins.
+#
+#   shy load PLUGIN_FILE
+#
+# See full documentation here: https://github.com/aaronroyer/shy
 set -e
 
 if [ -t 1 ] && [ -z "$SHY_NO_COLOR" ]; then
