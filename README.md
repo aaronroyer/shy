@@ -1,4 +1,3 @@
-
 # shy - minimal shell "plugins"
 
 Shy is a small tool for managing shell (bash/zsh) confiuration that is split into several files. A "plugin" is merely a file with plain old shell aliases, functions, variables, or anything else - they work the same whether or not Shy is installed.
@@ -40,33 +39,11 @@ Shy will source the files as normal, but also record all of the aliases, functio
 
 Now you can view a list of your plugins. The name of a plugin is the base file name with any extension removed.
 
-```
- $ shy list
- git
- misc
- rails
-```
+![Shy printing loaded plugins](https://raw2.github.com/aaronroyer/shy/master/doc/list.png)
 
 You can examine the details of a plugin.
 
-```
- $ shy show git
- Plugin name: git
- Source file: /Users/aaron/Dropbox/dotfiles/shell.d/common/plugins/git.sh
-
- == Aliases ==
- gb
- gc
- gd
- gl
- gs
-
- == Functions ==
- glb
-
- == Variables ==
- GIT_EDITOR
-```
+![Shy printing the contents of a plugin](https://raw2.github.com/aaronroyer/shy/master/doc/show.png)
 
 Use ```which``` if you want to know where something is defined.
 
