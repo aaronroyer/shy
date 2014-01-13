@@ -1,17 +1,23 @@
 #!/usr/bin/env bash
 #
-# Minimal shell plugin management
-#
-# Make this file executable and add it to your PATH somewhere. Then place the
-# following in your shell rc file.
+# Installation: Make this file is executable and add it to your PATH somewhere.
+# Then place the following in your shell rc file.
 #
 #   eval "$(shy init)"
 #
-# Then use the following to load plugins.
 #
-#   shy load PLUGIN_FILE
+# Usage: shy COMMAND [ARGS]
 #
-# See full documentation here: https://github.com/aaronroyer/shy
+# Shy enables minimal shell plugin management
+#
+# Most useful commands:
+#   load     Loads a plugin file
+#   show     Show the contents of a plugin
+#   edit     Open a plugin file with your editor
+#   which    Show which plugin a function, alias, or variable belongs to
+#   help     Print this help message
+#
+# See full documentation here: https://github.com/aaronroyer/shy#readme
 set -e
 
 if [ -t 1 ] && [ -z "$SHY_NO_COLOR" ]; then
@@ -130,6 +136,21 @@ cache_file_path() {
   echo "$(plugin_cache_dir)/$plugin_name"
 }
 
+write_cache() {
+  local plugin_path="$1" plugin_content="$2"
+  initialize_cache || return 1
+  local plugin_cache_file=$(cache_file_path "$plugin_path")
+  echo "$plugin_content" > "$plugin_cache_file"
+}
+
+read_cache() {
+  local plugin_path="$1"
+  [ -d "$(plugin_cache_dir)" ] || return 1
+  local plugin_cache_file=$(cache_file_path "$plugin_path")
+  [ -f "$plugin_cache_file" ] || return 1
+  [ "$plugin_path" -nt "$plugin_cache_file" ] && return 1
+  cat "$plugin_cache_file"
+}
 
 ### Top-level functions
 
@@ -191,20 +212,9 @@ which_plugin() {
   fi
 }
 
-write_cache() {
-  local plugin_path="$1" plugin_content="$2"
-  initialize_cache || return 1
-  local plugin_cache_file=$(cache_file_path "$plugin_path")
-  echo "$plugin_content" > "$plugin_cache_file"
-}
-
-read_cache() {
-  local plugin_path="$1"
-  [ -d "$(plugin_cache_dir)" ] || return 1
-  local plugin_cache_file=$(cache_file_path "$plugin_path")
-  [ -f "$plugin_cache_file" ] || return 1
-  [ "$plugin_path" -nt "$plugin_cache_file" ] && return 1
-  cat "$plugin_cache_file"
+# Print the comments at the top of this file.
+print_help() {
+  cat "$BASH_SOURCE" | tail -n +9 | awk '{if (/^#/) print; else exit}' | cut -c3-
 }
 
 # Prints functionss that need to directly manipulate the interactive shell's environment (and a
@@ -330,6 +340,7 @@ case "$1" in
 
   list) list_plugins ;;
   show|edit|which) ${1}_plugin "$2" ;;
+  help) print_help ;;
 
   _realpath|_read_cache|_write_cache)
     cmd=${1:1}
