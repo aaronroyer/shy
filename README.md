@@ -19,14 +19,11 @@ Using Shy allows you to do the following:
 <a name="installation"/>
 ## Installation
 
-1. Download the shy file and place it somewhere on your PATH
-1. Add the following configuration in .bashrc/.zshrc, somewhere after configuring your PATH
+1. Download the [shy script](https://raw2.github.com/aaronroyer/shy/master/shy) and place it somewhere on your PATH (make sure it is executable)
+1. Add ```eval "$(shy init)"``` in .bashrc/.zshrc, somewhere after configuring your PATH and before loading plugins
 
-```
-eval "$(shy init)"
-```
 
-If you don't know what a PATH is then Shy is probably not for you. But you can look at [dotfiles that others have set up](http://dotfiles.github.io/) and get some inspiration for learning more about using your shell.
+If you don't know what a PATH is then Shy is probably not for you. But you can look at [dotfiles that others have set up](http://dotfiles.github.io/) and get some inspiration for learning more about your shell.
 
 <a name="usage"/>
 ## Usage
@@ -76,9 +73,9 @@ You can open a plugin (or anything else) in your EDITOR.
 <a name="why"/>
 ## Why Use This?
 
-You should try Shy if you like to maintain your own shell config, want things into separate files, want to be able to keep track of it all, and don't want something heavy to do it.
+You should try Shy if you like to maintain your own shell config, want to split things into separate files, want to be able to keep track of it all and make tweaks with ease, and don't want something heavy to do it.
 
-If you want lots of crazy/awesome power-user features you might like something like [composure](https://github.com/erichs/composure) instead. If you use zsh and just want to dump a ton of functionality that someone else wrote into your shell and be done with it then use [oh-my-zsh](https://github.com/robbyrussell/oh-my-zsh).
+If you want lots of crazy/awesome power-user features you might like something like [composure](https://github.com/erichs/composure) instead. If you use zsh and just want to dump a ton of functionality that someone else wrote into your shell and be done with it then you could use [oh-my-zsh](https://github.com/robbyrussell/oh-my-zsh).
 
 I prefer to keep a set of often-used tools that I've put together myself (with little bits I've stolen) and manage them with simple tools.
 
