@@ -6,12 +6,12 @@
 #   eval "$(shy init)"
 #
 #
-# Usage: shy COMMAND [ARGS]
+# Usage: shy <command> [<args>]
 #
 # Shy enables minimal shell plugin management
 #
 # Most useful commands:
-#   load     Loads a plugin file
+#   load     Load a plugin file
 #   show     Show the contents of a plugin
 #   edit     Open a plugin file with your editor
 #   which    Show which plugin a function, alias, or variable belongs to
@@ -152,12 +152,29 @@ read_cache() {
   cat "$plugin_cache_file"
 }
 
+# Prints comments from this file starting at the given line number and stopping
+# when the next line does not start with a comment.
+print_comments_starting_at_line() {
+  cat "$BASH_SOURCE" | tail -n "+$1" | awk '{if (/^#/) print; else exit}' | cut -c3-
+  echo ''
+}
+
 ### Top-level functions
 
+# Usage: shy list
+#
+# Lists the names of plugins that have been previously loaded with
+# `shy load <plugin_file>'. The name of a plugin is the file name with
+# any extension removed.
 list_plugins() {
   echo $SHY_PLUGIN_DATA | tr '|' '\n' | cut -d ';' -f 1
 }
 
+# Usage: shy show <plugin_name>
+#
+# Prints information about the plugin with the given name, including the
+# name and file path, as well as the functions, aliases, and variables
+# defined in the plugin.
 show_plugin() {
   local plugin_data=$(get_plugin_data $1)
   [ -z "$plugin_data" ] && die "Unknown plugin name: $1"
@@ -176,9 +193,19 @@ show_plugin() {
   echo ''
 }
 
-# Opens the source file of the plugin with the given name in an editor. If the
-# names is not a plugin name then functions, aliases, and variables and the
-# plugin source file containing the item is opened in an editor.
+# Usage: shy edit <plugin_or_item_name>
+#
+# Opens a plugin file in your editor.
+#
+# If the name of a plugin is given, the file for the plugin with with that
+# name is opened.
+#
+# If the names of a function, alias, or variable defined in a function is
+# given, then the plugin file containing the item is opened.
+#
+# The editor used will be chosen from the SHY_EDITOR environment variable
+# or the EDITOR environment variable, in that order. If neither is set then
+# vi is used.
 edit_plugin() {
   local item_name="$1"
   local plugin_data=$(get_plugin_data $item_name)
@@ -192,11 +219,14 @@ edit_plugin() {
 
   local editor=$SHY_EDITOR
   [ -z "$editor" ] && editor=$EDITOR
-  [ -z "$editor" ] && editor=vim
+  [ -z "$editor" ] && editor=vi
 
   $editor $(plugin_file "$plugin_data")
 }
 
+# Usage: shy which <item_name>
+#
+# Finds which plugin a given function, alias, or variable is defined in.
 which_plugin() {
   local item_name="$1"
   local plugin_name_and_item_type=$(find_item $item_name)
@@ -212,13 +242,48 @@ which_plugin() {
   fi
 }
 
-# Print the comments at the top of this file.
+# Usage: shy help [<command_name>]
+#
+# Prints help information.
+#
+# With no command name given, basic commands and usage are printed.
+#
+# If a command name is given, then usage for that command is printed.
 print_help() {
-  cat "$BASH_SOURCE" | tail -n +9 | awk '{if (/^#/) print; else exit}' | cut -c3-
+  local cmd="$1"
+  if [ -n "$cmd" ]; then
+    local doc_first_line=$(grep -n "^# Usage: shy $cmd" "$BASH_SOURCE")
+    if [ -n "$doc_first_line" ]; then
+      local doc_first_line_number=$(echo "$doc_first_line" | cut -d ':' -f 1)
+      print_comments_starting_at_line $doc_first_line_number
+    else
+      die "No such command '$cmd'"
+    fi
+  else
+    print_comments_starting_at_line 9
+  fi
 }
 
-# Prints functionss that need to directly manipulate the interactive shell's environment (and a
-# few helpers). This is expected to be eval-ed when the shell loads.
+# (Documentation comments for load command included here, even though it is defined
+# in the init section, so that it is parseable with the rest of the top-level commands)
+
+# Usage: shy load <plugin_file>
+#
+# Loads a plugin from the given file.
+#
+# A plugin is merely a file with normal shell code. When loaded, Shy sources the
+# file and records the names of the functions, aliases, and environment variables
+# defined (for the first time) while sourcing the file.
+
+# Usage: shy init
+#
+# Prints Shy code that must be sourced in the interactive shell environment.
+#
+# This should generally only be used in the following initial configuration of
+# Shy, which should be placed in your shell's rc file, after the main shy
+# executable is placed on the PATH.
+#
+#   eval "$(shy init)"
 print_initialization() {
   cat <<EOS
 shy() {
@@ -340,7 +405,7 @@ case "$1" in
 
   list) list_plugins ;;
   show|edit|which) ${1}_plugin "$2" ;;
-  help) print_help ;;
+  help) shift; print_help "$@" ;;
 
   _realpath|_read_cache|_write_cache)
     cmd=${1:1}
