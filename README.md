@@ -102,13 +102,13 @@ For example:
 
 ---
 
-#### shy show <plugin_name>
+#### shy show \<plugin_name\>
 
 Show the details for the plugin. This prints the path of the plugin file, and lists the aliases, functions, and variables defined in the plugin.
 
 ---
 
-#### shy edit <plugin_or_other_item_name>
+#### shy edit \<plugin_or_other_item_name\>
 
 Open a plugin file in your editor. When given a plugin name, the plugin file is opened. When given the name of an alias, function, or variable the plugin file where that item is defined is opened in the editor.
 
@@ -116,13 +116,13 @@ To find an editor to use, Shy first checks the variable ```SHY_EDITOR```, then `
 
 ---
 
-#### shy which <item_name>
+#### shy which \<item_name\>
 
 Print what plugin an alias, function, or variable is defined in.
 
 ---
 
-#### shy help \[<command_name>\]
+#### shy help \[\<command_name\>\]
 
 Prints help for a specific command, or general help with no command name given.
 
