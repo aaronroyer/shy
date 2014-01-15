@@ -15,9 +15,9 @@
 #   show     Show the contents of a plugin
 #   edit     Open a plugin file with your editor
 #   which    Show which plugin a function, alias, or variable belongs to
-#   help     Print this help message
 #
-# See full documentation here: https://github.com/aaronroyer/shy#readme
+# Use `shy help <command>' for information on a specific command.
+# Full documentation: https://github.com/aaronroyer/shy#readme
 set -e
 
 if [ -t 1 ] && [ -z "$SHY_NO_COLOR" ]; then

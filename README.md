@@ -82,7 +82,7 @@ I prefer to keep a set of often-used tools that I've put together myself (with l
 <a name="command-reference"/>
 ## Command Reference
 
-#### shy load PLUGIN_PATH
+#### shy load <plugin_path>
 
 Load a plugin file. This simply sources the file and Shy records the aliases, functions, and variables first defined in the file.
 
@@ -102,13 +102,13 @@ For example:
 
 ---
 
-#### shy show PLUGIN_NAME
+#### shy show <plugin_name>
 
 Show the details for the plugin. This prints the path of the plugin file, and lists the aliases, functions, and variables defined in the plugin.
 
 ---
 
-#### shy edit PLUGIN_OR_OTHER_ITEM_NAME
+#### shy edit <plugin_or_other_item_name>
 
 Open a plugin file in your editor. When given a plugin name, the plugin file is opened. When given the name of an alias, function, or variable the plugin file where that item is defined is opened in the editor.
 
@@ -116,9 +116,15 @@ To find an editor to use, Shy first checks the variable ```SHY_EDITOR```, then `
 
 ---
 
-#### shy which ITEM_NAME
+#### shy which <item_name>
 
 Print what plugin an alias, function, or variable is defined in.
+
+---
+
+#### shy help \[<command_name>\]
+
+Prints help for a specific command, or general help with no command name given.
 
 <a name="advanced-configuration"/>
 ## Advanced Configuration
