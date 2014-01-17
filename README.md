@@ -4,9 +4,9 @@ Shy is a small tool for managing shell (bash/zsh) confiuration that is split int
 
 Using Shy allows you to do the following:
 
- * Find where the heck that alias is defined
- * Pop open your editor to make a quick change to that function
- * Figure out where you configured something with an environment variable and tweak it
+ * Organize your shell config into groups of related functionality (plugins) in a lightweight way
+ * Quickly find where things (functions, aliases, variables) are defined
+ * Open your editor with the appropriate file, to make a quick change
  * And (not much) more!
 
 [Installation](#installation)  
