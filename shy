@@ -12,6 +12,7 @@
 #
 # Most useful commands:
 #   load     Load a plugin file
+#   list     List the plugins that have been loaded
 #   show     Show the contents of a plugin
 #   edit     Open a plugin file with your editor
 #   which    Show which plugin a function, alias, or variable belongs to
@@ -400,16 +401,20 @@ shy() {
 EOS
 }
 
-case "$1" in
-  init) print_initialization ;;
+if [ -z "$1" ]; then
+  print_help
+else
+  case "$1" in
+    init) print_initialization ;;
 
-  list) list_plugins ;;
-  show|edit|which) ${1}_plugin "$2" ;;
-  help) shift; print_help "$@" ;;
+    list) list_plugins ;;
+    show|edit|which) ${1}_plugin "$2" ;;
+    help) shift; print_help "$@" ;;
 
-  _realpath|_read_cache|_write_cache)
-    cmd=${1:1}
-    shift
-    $cmd "$@" ;;
+    _realpath|_read_cache|_write_cache)
+      cmd=${1:1}
+      shift
+      $cmd "$@" ;;
 
-esac
+  esac
+fi
