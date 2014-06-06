@@ -129,7 +129,7 @@ Prints help for a specific command, or general help with no command name given.
 <a name="advanced-configuration"/>
 ## Advanced Configuration
 
-If you want everything to work even if Shy is not installed (like if you sync your dotfiles but don't sync Shy along with it) then you can add a fallback that just loads.
+If you want everything to work even if Shy is not installed (like if you sync your dotfiles but don't sync Shy along with it) then you can add a fallback function that simply sources your plugin files. This way your shell works the same even if ```shy``` isn't on your ```PATH```.
 
 ```
 if which shy &> /dev/null; then
