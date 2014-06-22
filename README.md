@@ -20,15 +20,13 @@ Using Shy allows you to do the following:
 ## Installation
 
 1. Download the [shy script](https://raw2.github.com/aaronroyer/shy/master/shy) and place it somewhere on your PATH (make sure it is executable)
-1. Add ```eval "$(shy init)"``` in .bashrc/.zshrc, somewhere after configuring your PATH and before loading plugins
-
-
-If you don't know what a PATH is then Shy is probably not for you. But you can look at [dotfiles that others have set up](http://dotfiles.github.io/) and get some inspiration for learning more about your shell.
+1. Add ```eval "$(shy init)"``` in .bashrc (or .zshrc if using zsh), somewhere after configuring your PATH
+1. Add some plugins! See [usage](#usage) for more info.
 
 <a name="usage"/>
 ## Usage
 
-Once you're installed then you can used ```shy load``` to load plugin files. You will usually do this in your .bashrc/.zshrc or other files that are run when your shell loads.
+Once you're installed then you can used ```shy load``` to load plugin files. You will usually do this in your .bashrc/.zshrc file. Make sure Shy is initialized before loading plugins.
 
 ```
 shy load ~/path/to/plugin.sh
