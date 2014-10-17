@@ -6,6 +6,7 @@
 #   eval "$(shy init)"
 #
 #
+# shy 0.0.1
 # Usage: shy <command> [<args>]
 #
 # Shy enables minimal shell plugin management
