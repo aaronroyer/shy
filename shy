@@ -295,14 +295,15 @@ shy() {
 
     # Load a plugin from a file
     load)
-      local plugin_file="\$2" plugin_name new_plugin_data
+      local plugin_file="\$2" plugin_basename plugin_name new_plugin_data
       if [ -z "\$plugin_file" ]; then
         shy _err "Usage: shy load PLUGIN_NAME"
       elif [ ! -f "\$plugin_file" ]; then
         shy _err "shy: file does not exist: \$plugin_file"
       else
         plugin_file=\$(shy _realpath \$plugin_file)
-        plugin_name="\$(basename \${plugin_file%.*})"
+        plugin_basename="\$(basename \$plugin_file)"
+        plugin_name="\${plugin_basename%.*}"
 
         if new_plugin_data=\$(shy _read_cache "\$plugin_file"); then
           shy _debug "Plugin data retrieved from cache: \${plugin_file}"

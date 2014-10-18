@@ -72,6 +72,12 @@ load test_helper
   assert_equal "$new_plugin_data" "$SHY_PLUGIN_DATA"
 }
 
+@test "plugins do not need a file extension (and work in hidden directories)" {
+  local plugin_file="$FIXTURES_DIR/.hidden/plugin4"
+  shy load $plugin_file
+  assert_equal "plugin4;$plugin_file;plugin4_alias1;plugin4_func1;PLUGIN4_VAR1" "$SHY_PLUGIN_DATA"
+}
+
 @test "load returns failure status without a file name" {
   run shy load
   assert_failure "Usage: shy load PLUGIN_NAME"

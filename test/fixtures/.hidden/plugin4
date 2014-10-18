@@ -1,0 +1,7 @@
+alias plugin4_alias1='echo "plugin4 alias1"'
+
+plugin4_func1() {
+  echo 'plugin4 func1'
+}
+
+export PLUGIN4_VAR1='plugin4 var1'
