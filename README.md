@@ -43,11 +43,11 @@ Shy will source the files as normal, but also record all of the aliases, functio
 
 Now you can view a list of your plugins. The name of a plugin is the base file name with any extension removed.
 
-![Shy printing loaded plugins](https://raw2.github.com/aaronroyer/shy/master/doc/list.png)
+![Shy printing loaded plugins](doc/list.png)
 
 You can examine the details of a plugin.
 
-![Shy printing the contents of a plugin](https://raw2.github.com/aaronroyer/shy/master/doc/show.png)
+![Shy printing the contents of a plugin](doc/show.png)
 
 Use ```which``` if you want to know where something is defined.
 
